@@ -1,4 +1,3 @@
-# 🏥 VAIDYA AI – AI-Powered Virtual Health Assistant
 
 ## 🔍 Problem Statement
 
@@ -182,4 +181,14 @@ python voice_of_the_doctor.py
 ```
 ai_doctor_fully_fixed.py
 ```
+## 🖼 Screenshots
+
+![Screenshot 2025-05-29 001049](https://github.com/user-attachments/assets/e15b152f-5609-40bb-a259-87a224dfbc41)
+![Screenshot 2025-05-28 233232](https://github.com/user-attachments/assets/3348a6cd-917b-43a5-8ab8-60b3135f7811)
+![Screenshot 2025-05-28 233311](https://github.com/user-attachments/assets/e1cb8310-5c9c-40e4-b9ad-07b14dc8e74e)
+![Screenshot 2025-05-28 233400](https://github.com/user-attachments/assets/40af1cde-4e0f-4dfb-bed3-019aa96fadfa)
+
+
+
+
 

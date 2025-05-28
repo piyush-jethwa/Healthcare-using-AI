@@ -1,3 +1,34 @@
+# 🏥 VAIDYA AI – AI-Powered Virtual Health Assistant
+
+## 🔍 Problem Statement
+
+Many individuals in semi-urban and rural areas face barriers in accessing timely medical consultations due to limited infrastructure, lack of healthcare professionals, and language challenges. There is a need for a virtual system that can understand patients' input through various mediums and provide basic diagnostics and support in multiple languages.
+
+## 💡 Approach & Solution
+
+**Advance HealthCare** is a virtual health assistant that utilizes AI/ML to offer preliminary diagnosis through natural input methods: **voice**, **text**, and **image**. It consists of four modular phases including diagnosis logic, speech recognition and synthesis, and a web UI interface using **Gradio**.
+
+The system allows users to interact in their preferred language (Hindi, English, Marathi), making it highly accessible and user-friendly.
+
+## ✨ Features
+
+- 🎙 Voice input for patient symptoms
+- 📄 Text input for faster interaction
+- 🖼 Image input (for basic visual symptom detection)
+- 🧠 AI-powered diagnosis engine
+- 🗣 Multilingual output via Text-to-Speech (gTTS)
+- 💬 Gradio UI for web-based interaction
+- 🧾 Modular architecture (4 distinct components)
+
+## 🛠 Tech Stack
+
+- **Programming Language:** Python
+- **Libraries/Frameworks:** Gradio, gTTS, SpeechRecognition, OpenCV, PIL
+- **Tools:** FFmpeg, PortAudio
+- **OS Compatibility:** Windows, macOS, Linux
+- **Python Version:** 3.11+
+
+
 # Project Setup Guide
 
 This guide provides step-by-step instructions to set up your project environment, including the installation of FFmpeg and PortAudio across macOS, Linux, and Windows, as well as setting up a Python virtual environment using Pipenv, pip, or conda.
@@ -149,6 +180,6 @@ python voice_of_the_doctor.py
 
 ## Phase 4: Setup Gradio UI
 ```
-python gradio_app.py
+ai_doctor_fully_fixed.py
 ```
 

@@ -6,20 +6,24 @@
 # ffmpeg, portaudio, pyaudio
 import logging
 import speech_recognition as sr
-from pydub import AudioSegment
-from io import BytesIO
 import os
 from groq import Groq
-import sounddevice as sd
 import numpy as np
-import wave
 import streamlit as st
 import tempfile
 import soundfile as sf
 from datetime import datetime
+from dotenv import load_dotenv
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# Load environment variables
+load_dotenv()
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Initialize Groq client
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 def record_audio(file_path):
     """
@@ -63,31 +67,34 @@ def record_audio(file_path):
 GROQ_API_KEY=os.environ.get("GROQ_API_KEY")
 stt_model="whisper-large-v3"
 
-def transcribe_with_groq(stt_model, audio_filepath, GROQ_API_KEY):
+def transcribe_with_groq(text):
     """
-    Transcribe audio using Groq's API.
-    
-    Args:
-    stt_model (str): The model to use for transcription.
-    audio_filepath (str): Path to the audio file.
-    GROQ_API_KEY (str): Groq API key.
-    
-    Returns:
-    str: Transcribed text.
+    Process the transcribed text using Groq API
     """
-    client = Groq(api_key=GROQ_API_KEY)
-    
-    if not os.path.exists(audio_filepath):
-        raise ValueError("Audio file does not exist.")
+    try:
+        # Create a chat completion
+        chat_completion = client.chat.completions.create(
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a medical assistant. Analyze the patient's symptoms and provide a detailed response."
+                },
+                {
+                    "role": "user",
+                    "content": text
+                }
+            ],
+            model="mixtral-8x7b-32768",
+            temperature=0.7,
+            max_tokens=1024,
+            top_p=1,
+            stream=False
+        )
         
-    audio_file = open(audio_filepath, "rb")
-    transcription = client.audio.transcriptions.create(
-        model=stt_model,
-        file=audio_file,
-        language="en"
-    )
-
-    return transcription.text
+        return chat_completion.choices[0].message.content
+    except Exception as e:
+        logger.error(f"Error processing with Groq: {str(e)}")
+        return None
 
 def transcribe_audio(file_path):
     """
@@ -121,6 +128,13 @@ def main():
             text = transcribe_audio(file_path)
             if text:
                 st.write("Transcription:", text)
+                
+                # Process with Groq
+                response = transcribe_with_groq(text)
+                if response:
+                    st.write("AI Analysis:", response)
+                else:
+                    st.error("Failed to process with AI")
             else:
                 st.error("Failed to transcribe the audio")
         else:

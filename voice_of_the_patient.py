@@ -13,46 +13,51 @@ from groq import Groq
 import sounddevice as sd
 import numpy as np
 import wave
+import streamlit as st
+import tempfile
+import soundfile as sf
+from datetime import datetime
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
-def record_audio(file_path, timeout=20, phrase_time_limit=None):
+def record_audio(file_path):
     """
-    Function to handle audio recording using sounddevice.
-    
-    Args:
-    file_path (str): Path to save the recorded audio file.
-    timeout (int): Maximum time to wait for a phrase to start (in seconds).
-    phrase_time_limit (int): Maximum time for the phrase to be recorded (in seconds).
+    Record audio using Streamlit's built-in audio recorder
     """
     try:
-        # Set recording parameters
-        sample_rate = 16000
-        channels = 1
-        
-        # Record audio
-        logging.info("Recording audio...")
-        recording = sd.rec(
-            int(timeout * sample_rate),
-            samplerate=sample_rate,
-            channels=channels,
-            dtype='int16'
+        # Create a temporary file to store the audio
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_file:
+            temp_path = temp_file.name
+
+        # Use Streamlit's audio recorder
+        audio_bytes = st.audio_recorder(
+            text="Click to record",
+            recording_color="#e74c3c",
+            neutral_color="#3498db",
+            sample_rate=16000
         )
-        sd.wait()  # Wait until recording is finished
-        
-        # Save the recording
-        with wave.open(file_path, 'wb') as wf:
-            wf.setnchannels(channels)
-            wf.setsampwidth(2)  # 2 bytes for int16
-            wf.setframerate(sample_rate)
-            wf.writeframes(recording.tobytes())
+
+        if audio_bytes is not None:
+            # Convert audio bytes to numpy array
+            audio_array = np.frombuffer(audio_bytes, dtype=np.int16)
             
-        logging.info(f"Audio saved to {file_path}")
-        return file_path
-        
+            # Save the audio using soundfile
+            sf.write(temp_path, audio_array, 16000)
+            
+            # Move the temporary file to the desired location
+            os.replace(temp_path, file_path)
+            logger.info(f"Audio recorded and saved to {file_path}")
+            return True
+        else:
+            logger.warning("No audio was recorded")
+            return False
+
     except Exception as e:
-        logging.error(f"Error recording audio: {str(e)}")
-        raise
+        logger.error(f"Error recording audio: {str(e)}")
+        if os.path.exists(temp_path):
+            os.unlink(temp_path)
+        return False
 
 # Step2: Setup Speech to text–STT–model for transcription
 GROQ_API_KEY=os.environ.get("GROQ_API_KEY")
@@ -83,3 +88,43 @@ def transcribe_with_groq(stt_model, audio_filepath, GROQ_API_KEY):
     )
 
     return transcription.text
+
+def transcribe_audio(file_path):
+    """
+    Transcribe audio using Google Speech Recognition
+    """
+    try:
+        recognizer = sr.Recognizer()
+        with sr.AudioFile(file_path) as source:
+            audio_data = recognizer.record(source)
+            text = recognizer.recognize_google(audio_data)
+            return text
+    except Exception as e:
+        logger.error(f"Error transcribing audio: {str(e)}")
+        return None
+
+def main():
+    st.title("Voice of the Patient")
+    
+    # Create a directory for audio files if it doesn't exist
+    os.makedirs("recordings", exist_ok=True)
+    
+    # Record audio
+    if st.button("Start Recording"):
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        file_path = os.path.join("recordings", f"recording_{timestamp}.wav")
+        
+        if record_audio(file_path):
+            st.success("Recording completed!")
+            
+            # Transcribe the audio
+            text = transcribe_audio(file_path)
+            if text:
+                st.write("Transcription:", text)
+            else:
+                st.error("Failed to transcribe the audio")
+        else:
+            st.error("Failed to record audio")
+
+if __name__ == "__main__":
+    main()
